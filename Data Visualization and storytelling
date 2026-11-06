@@ -1,0 +1,98 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load Dataset
+df = pd.read_csv("Superstore.csv", encoding="latin1")
+
+# Dataset Information
+print("DATASET OVERVIEW")
+print(df.head())
+print("\nDataset Shape:", df.shape)
+
+# Convert Date
+df["Order Date"] = pd.to_datetime(
+    df["Order Date"], errors="coerce"
+)
+
+# Calculate Sales and Profit
+category_sales = df.groupby("Category")["Sales"].sum()
+region_profit = df.groupby("Region")["Profit"].sum()
+
+df["Month"] = df["Order Date"].dt.to_period("M")
+monthly_sales = df.groupby("Month")["Sales"].sum()
+
+segment_sales = df.groupby("Segment")["Sales"].sum()
+
+top_products = (
+    df.groupby("Product Name")["Sales"]
+    .sum().sort_values(ascending=False).head(10)
+)
+
+# Create One Page Dashboard
+fig, ax = plt.subplots(3, 2, figsize=(14, 16))
+
+fig.suptitle(
+    "SUPERSTORE SALES ANALYSIS DASHBOARD",
+    fontsize=18, fontweight="bold"
+)
+
+# Graph 1: Sales by Category
+category_sales.plot(kind="bar", ax=ax[0, 0])
+ax[0, 0].set_title("Sales by Category")
+ax[0, 0].set_ylabel("Total Sales")
+ax[0, 0].tick_params(axis="x", rotation=20)
+
+# Graph 2: Profit by Region
+region_profit.plot(kind="bar", ax=ax[0, 1])
+ax[0, 1].set_title("Profit by Region")
+ax[0, 1].set_ylabel("Total Profit")
+
+# Graph 3: Monthly Sales Trend
+monthly_sales.index = monthly_sales.index.astype(str)
+monthly_sales.plot(
+    kind="line", marker="o", ax=ax[1, 0]
+)
+ax[1, 0].set_title("Monthly Sales Trend")
+ax[1, 0].set_ylabel("Total Sales")
+ax[1, 0].tick_params(axis="x", rotation=60)
+
+# Graph 4: Sales by Segment
+segment_sales.plot(
+    kind="pie", autopct="%1.1f%%",
+    startangle=90, ax=ax[1, 1]
+)
+ax[1, 1].set_title("Sales by Segment")
+ax[1, 1].set_ylabel("")
+
+# Graph 5: Top 10 Products
+top_products.plot(kind="barh", ax=ax[2, 0])
+ax[2, 0].set_title("Top 10 Products by Sales")
+ax[2, 0].set_xlabel("Total Sales")
+ax[2, 0].invert_yaxis()
+
+# Hide Empty Plot
+ax[2, 1].axis("off")
+
+plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+# Save Dashboard
+plt.savefig("Sales_Analysis_Dashboard.png", dpi=150)
+
+plt.show()
+
+# Business Insights
+print("\n========== BUSINESS INSIGHTS ==========")
+
+print("\nCategory-wise Sales:")
+print(category_sales)
+
+print("\nRegion-wise Profit:")
+print(region_profit)
+
+print("\nTop 10 Products:")
+print(top_products)
+
+print("\nTotal Sales:", df["Sales"].sum())
+print("Total Profit:", df["Profit"].sum())
+
+print("\nData Visualization Task Completed!")
